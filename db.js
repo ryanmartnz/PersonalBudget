@@ -14,7 +14,7 @@ const isValidEnvelope = envelope => {
 
 const findEnvelopeById = envelopeId => {
     return envelopes.find((envelope) => envelope.id === envelopeId); 
-}
+};
 
 const addNewEnvelope = (title, budget) => {
     let newEnvelope = {
@@ -26,7 +26,7 @@ const addNewEnvelope = (title, budget) => {
         envelopes.push(newEnvelope);
         return envelopes[envelopes.length - 1];
     }
-}
+};
 
 const updateEnvelopeById = (envelopeId, title, budget) => {
     const envelopeIndex = envelopes.findIndex((envelope) => envelope.id === envelopeId); 
@@ -35,20 +35,31 @@ const updateEnvelopeById = (envelopeId, title, budget) => {
         budget: budget
     };
     if(envelopeIndex > -1 && isValidEnvelope(newEnvelope)) {
-        const budgetUsed = envelopes[envelopeIndex].budget - budget;
+        const budgetUsed = Number(envelopes[envelopeIndex].budget) - Number(budget);
         totalBudget -= budgetUsed;
-        
+
         newEnvelope.id = `${envelopeId}`;
         envelopes[envelopeIndex] = newEnvelope;
         return envelopes[envelopeIndex];
     } else {
         return null;
     }
-}
+};
+
+const deleteEnvelopeById = envelopeId => {
+    const envelopeIndex = envelopes.findIndex((envelope) => envelope.id === envelopeId);
+    if(envelopeIndex > -1) {
+        envelopes.splice(envelopeIndex, 1);
+        return true;
+    } else {
+        return null;
+    }
+};
 
 module.exports = {
     envelopes,
     addNewEnvelope,
     findEnvelopeById,
-    updateEnvelopeById
+    updateEnvelopeById,
+    deleteEnvelopeById
 };
