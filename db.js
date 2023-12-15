@@ -1,5 +1,7 @@
+const { env } = require("process");
+
 let envelopeIdCounter = 1;
-let totalBudget = 3000;
+let totalBudget = 0;
 let envelopes = [];
 
 const isValidEnvelope = envelope => {
@@ -12,14 +14,18 @@ const isValidEnvelope = envelope => {
     return true;
 };
 
+const moneyFormat = number => {
+    return Number(Math.round(parseFloat(number + 'e' + 2)) + 'e-' + 2);
+};
+
 const findEnvelopeById = envelopeId => {
     return envelopes.find((envelope) => envelope.id === envelopeId); 
 };
 
-const addNewEnvelope = (title, budget) => {
+const addNewEnvelope = (title) => {
     let newEnvelope = {
         title: title,
-        budget: budget
+        budget: 0
     };
     if(isValidEnvelope(newEnvelope)) {
         newEnvelope.id = `${envelopeIdCounter++}`;
@@ -49,10 +55,53 @@ const updateEnvelopeById = (envelopeId, title, budget) => {
 const deleteEnvelopeById = envelopeId => {
     const envelopeIndex = envelopes.findIndex((envelope) => envelope.id === envelopeId);
     if(envelopeIndex > -1) {
+        totalBudget += envelopes[envelopeIndex].budget;
         envelopes.splice(envelopeIndex, 1);
         return true;
     } else {
         return null;
+    }
+};
+
+const distributeNewBalance = balance => {
+    if(isNaN(parseFloat(balance)) && !isFinite(balance)) {
+        throw new Error('Balance must be a number!');
+    }
+    let distributed = 0;
+    for(let i = 0; i < envelopes.length; i++) {
+        if(distributed >= balance) {
+            break;
+        }
+        switch(envelopes[i].title) {
+            case 'Bills':
+                envelopes[i].budget += moneyFormat(balance * 0.5);
+                distributed += moneyFormat(balance * 0.5);
+                break;
+            case 'Groceries':
+                envelopes[i].budget += moneyFormat(balance * 0.1);
+                distributed += moneyFormat(balance * 0.1);
+                break;
+            case 'Health':
+                envelopes[i].budget += moneyFormat(balance * 0.1);
+                distributed += moneyFormat(balance * 0.1);
+                break;
+            case 'Gas':
+                envelopes[i].budget += moneyFormat(balance * 0.05);
+                distributed += moneyFormat(balance * 0.05);
+                break;
+            case 'Eating Out':
+                envelopes[i].budget += moneyFormat(balance * 0.05);
+                distributed += moneyFormat(balance * 0.05);
+                break;
+            case 'Entertainment':
+                envelopes[i].budget += moneyFormat(balance * 0.05);
+                distributed += moneyFormat(balance * 0.05);
+                break;
+            default:
+                envelopes[i].budget += moneyFormat(balance * 0.05);
+                distributed += moneyFormat(balance * 0.05);
+                break;
+        }
     }
 };
 
@@ -61,5 +110,6 @@ module.exports = {
     addNewEnvelope,
     findEnvelopeById,
     updateEnvelopeById,
-    deleteEnvelopeById
+    deleteEnvelopeById,
+    distributeNewBalance
 };
