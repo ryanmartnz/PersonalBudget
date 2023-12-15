@@ -1,0 +1,19 @@
+{
+  "name": "personalbudgetpart1",
+  "version": "1.0.0",
+  "description": "An API that allows clients to create and manage a personal budget",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryanmartnz/PersonalBudget.git"
+  },
+  "author": "Ryan Martinez",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ryanmartnz/PersonalBudget/issues"
+  },
+  "homepage": "https://github.com/ryanmartnz/PersonalBudget#readme"
+}
