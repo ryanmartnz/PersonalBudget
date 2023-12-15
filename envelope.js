@@ -2,7 +2,7 @@ const envelopesRouter = require('express').Router();
 
 module.exports = envelopesRouter;
 
-const { envelopes, addNewEnvelope, findEnvelopeById, updateEnvelopeById, deleteEnvelopeById } = require('./db');
+const { envelopes, addNewEnvelope, findEnvelopeById, updateEnvelopeById, deleteEnvelopeById, distributeNewBalance } = require('./db');
 
 envelopesRouter.param('id', (req, res, next, id) => {
     const envelope = findEnvelopeById(id);
@@ -33,7 +33,7 @@ envelopesRouter.put('/:id', (req, res, next) => {
 
 envelopesRouter.post('/', (req, res, next) => {
     try {
-        const newEnvelope = addNewEnvelope(req.body.title, req.body.budget);
+        const newEnvelope = addNewEnvelope(req.body.title);
         res.status(201).send(newEnvelope);
     } catch(err) {
         res.status(400).send(err.message);
@@ -56,12 +56,21 @@ envelopesRouter.post('/transfer/:from/:to', (req, res, next) => {
             const toEnvelopeNewBudget = Number(fromEnvelope.budget) + Number(toEnvelope.budget);
             updateEnvelopeById(toEnvelope.id, toEnvelope.title, toEnvelopeNewBudget);
             updateEnvelopeById(fromEnvelope.id, fromEnvelope.title, 0);
-            res.status(201).send(`Budget of \$${fromEnvelope.budget} successfully transferred from ${fromEnvelope.title} to ${toEnvelope.title}.`);
+            res.status(201).send([fromEnvelope, toEnvelope]);
         } else if(!fromEnvelope) {
             res.status(404).send(`Envelope with id #${req.params.from} not found!`);
         } else if(!toEnvelope) {
             res.status(404).send(`Envelope with id #${req.params.to} not found!`);
         }
+    } catch(err) {
+        res.status(500).send(err.message);
+    }
+});
+
+envelopesRouter.post('/distribute/:balance', (req, res, next) => {
+    try {
+        distributeNewBalance(req.params.balance);
+        res.status(201).send(envelopes);
     } catch(err) {
         res.status(500).send(err.message);
     }
