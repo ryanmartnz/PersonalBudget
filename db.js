@@ -1,5 +1,5 @@
 let envelopeIdCounter = 1;
-const totalBudget = 3000;
+let totalBudget = 3000;
 let envelopes = [];
 
 const isValidEnvelope = envelope => {
@@ -11,6 +11,10 @@ const isValidEnvelope = envelope => {
     }
     return true;
 };
+
+const findEnvelopeById = envelopeId => {
+    return envelopes.find((envelope) => envelope.id === envelopeId); 
+}
 
 const addNewEnvelope = (title, budget) => {
     let newEnvelope = {
@@ -24,6 +28,27 @@ const addNewEnvelope = (title, budget) => {
     }
 }
 
+const updateEnvelopeById = (envelopeId, title, budget) => {
+    const envelopeIndex = envelopes.findIndex((envelope) => envelope.id === envelopeId); 
+    let newEnvelope = {
+        title: title,
+        budget: budget
+    };
+    if(envelopeIndex > -1 && isValidEnvelope(newEnvelope)) {
+        const budgetUsed = envelopes[envelopeIndex].budget - budget;
+        totalBudget -= budgetUsed;
+        
+        newEnvelope.id = `${envelopeId}`;
+        envelopes[envelopeIndex] = newEnvelope;
+        return envelopes[envelopeIndex];
+    } else {
+        return null;
+    }
+}
+
 module.exports = {
-    addNewEnvelope
+    envelopes,
+    addNewEnvelope,
+    findEnvelopeById,
+    updateEnvelopeById
 };
