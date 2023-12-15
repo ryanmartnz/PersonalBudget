@@ -1,11 +1,13 @@
 const express = require('express');
 const app = express();
+const bodyParser = require('body-parser');
+
+const envelopesRouter = require('./envelope');
 
 const PORT = 3001;
 
-app.get('/', (req, res, next) => {
-    res.send('Hello, World!');
-});
+app.use(bodyParser.json());
+app.use('/envelopes', envelopesRouter);
 
 // Start the server
 app.listen(PORT, () => {
