@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/ryanmartnz/PersonalBudget/issues"
   },
-  "homepage": "https://github.com/ryanmartnz/PersonalBudget#readme"
+  "homepage": "https://github.com/ryanmartnz/PersonalBudget#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
