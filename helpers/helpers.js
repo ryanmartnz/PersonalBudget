@@ -1,6 +1,11 @@
 const createId = data => {
-    const lastRecord = data[data.length - 1];
-    const newId = lastRecord.id + 1;
+    let newId;
+    if(data.length === 0) {
+        newId = 1;
+    } else {
+        const lastRecord = data[data.length - 1];
+        newId = lastRecord.id + 1;
+    }
     if(newId === NaN || newId < 0 || newId === undefined) {
         throw new Error("Invalid ID!");
     }
@@ -12,7 +17,7 @@ const findById = (data, id) => {
         return item.id === parseInt(id);
     });
     if(!foundRecord) {
-        throw new Error("Record not found!");
+        throw new Error(`Envelope with id ${id} not found!`);
     }
     return foundRecord;
 };
@@ -20,7 +25,7 @@ const findById = (data, id) => {
 const deleteById = (data, id) => {
     const foundIndex = data.findIndex((item) => item.id === parseInt(id));
     if(foundIndex === -1) {
-        throw new Error("Record not found!");
+        throw new Error(`Envelope with id ${id} not found!`);
     }
     data.splice(foundIndex, 1);
     return data;
