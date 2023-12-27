@@ -1,5 +1,5 @@
 const db = require('../config/db');
-const { createId } = require('../helpers/helpers');
+const { createId, updateEnvelopeBudget } = require('../helpers/helpers');
 
 const getTransactions = async (req, res, next) => {
     try {
@@ -20,10 +20,19 @@ const getTransactionById = async (req, res, next) => {
 
 const newTransaction = async (req, res, next) => {
     try {
+        if(req.envelope.budget < req.amount) {
+            return res.status(400).send('Transaction amount exceeds envelope budget! Transaction rejected.');
+        }
         const results = await db.query("SELECT * FROM transactions ORDER BY id");
         const newId = createId(results.rows);
-        const newTransaction = await db.query("INSERT INTO transactions (id, date, amount, recipient, envelope_id) VALUES ($1, $2, $3, $4, $5) RETURNING *", 
-                                                [newId, req.date, req.amount, req.recipient, req.envelopeId]);
+        const newTransaction = await db.query(
+            "INSERT INTO transactions (id, date, amount, recipient, envelope_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+            [newId, req.date, req.amount, req.recipient, req.envelope.id]
+        );
+        
+        const newEnvelopeBudget = req.envelope.budget - req.amount;
+        await updateEnvelopeBudget(req.envelope, newEnvelopeBudget);
+
         return res.status(201).send(newTransaction.rows[0]);
     } catch(err) {
         return res.status(500).send(err.message);
@@ -32,9 +41,33 @@ const newTransaction = async (req, res, next) => {
 
 const updateTransaction = async (req, res, next) => {
     try {
-        const updated = await db.query("UPDATE transactions SET date = $1, amount = $2, recipient = $3, envelope_id = $4 WHERE id = $5 RETURNING *",
-                                        [req.date, req.amount, req.recipient, req.envelopeId, req.params.id]);
-        return res.status(201).send(updated.rows[0]);
+        let newEnvelopeBudget;
+        if(req.transaction.envelope_id !== req.envelope.id) {
+            if(req.envelope.budget < req.amount) {
+                return res.status(400).send('Transaction amount exceeds new envelope budget! Transaction update rejected.');
+            }
+            const originalEnvelope = (await db.query("SELECT * FROM envelopes WHERE id = $1", [req.transaction.envelope_id])).rows[0];
+            console.log(originalEnvelope.budget);
+            const newOriginalBudget = parseFloat(originalEnvelope.budget) + req.amount;
+            console.log(newOriginalBudget);
+            await updateEnvelopeBudget(originalEnvelope, newOriginalBudget);
+
+            newEnvelopeBudget = req.envelope.budget - req.amount;
+        } else {
+            newEnvelopeBudget = req.envelope.budget - (req.amount - req.transaction.amount);
+            if(newEnvelopeBudget < 0) {
+                return res.status(400).send('New transaction amount exceeds original envelope budget! Transaction update rejected.');
+            }
+        }
+
+        const updatedTransaction = await db.query(
+            "UPDATE transactions SET date = $1, amount = $2, recipient = $3, envelope_id = $4 WHERE id = $5 RETURNING *",
+            [req.date, req.amount, req.recipient, req.envelope.id, req.transaction.id]
+        );
+        console.log(newEnvelopeBudget);
+        await updateEnvelopeBudget(req.envelope, newEnvelopeBudget);
+
+        return res.status(201).send(updatedTransaction.rows[0]);
     } catch(err) {
         return res.status(500).send(err.message);
     }
@@ -42,8 +75,13 @@ const updateTransaction = async (req, res, next) => {
 
 const deleteTransaction = async (req, res, next) => {
     try {
-        await db.query("DELETE FROM transactions WHERE id = $1", [req.params.id]);
-        return res.status(204).send(`Successfully deleted transactions with id: ${req.params.id}`);
+        await db.query("DELETE FROM transactions WHERE id = $1", [req.transaction.id]);
+
+        const envelope = (await db.query("SELECT * FROM envelopes WHERE id = $1", [req.transaction.envelope_id])).rows[0];
+        const newEnvelopeBudget = parseFloat(envelope.budget) + req.transaction.amount;
+        await updateEnvelopeBudget(envelope, newEnvelopeBudget);
+
+        return res.status(204).send(`Successfully deleted transactions with id: ${req.transaction.id}`);
     } catch(err) {
         return res.status(500).send(err.message);
     }
