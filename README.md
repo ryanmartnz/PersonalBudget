@@ -9,10 +9,12 @@ To run locally, run `npm install`, then `npm run start`
 Once the app is running locally, you can access the API at `http://localhost:4000/`
 
 ### Globally
-Coming soon...
+A global version of the API can be accessed at `https://personal-budget-xnbn.onrender.com`
 
 ## Testing with Swagger
-Swagger documentation and testing available at `http://localhost:4000/api-docs`
+Swagger documentation and testing available at:
+ - Locally: `http://localhost:4000/api-docs` 
+ - Globally: `https://personal-budget-xnbn.onrender.com`
 
 To test with Swagger:
 
