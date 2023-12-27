@@ -15,12 +15,16 @@ Coming soon...
 Swagger documentation and testing available at `http://localhost:4000/api-docs`
 
 To test with Swagger:
+
+**Envelopes**
  - Retrieve envelopes using `GET /api/v1/envelopes`
  - Retrieve a single envelope using `GET /api/v1/envelopes/{id}`
  - Create an envelope using `POST /api/v1/envelopes`
  - Update an envelope using `PUT /api/v1/envelope/{id}`
  - Delete an envelope using `DELETE /api/v1/envelope/{id}`
  - Transfer money between envelopes using `POST /api/v1/envelope/{fromId}/transfer/{toId}`
+ 
+**Transactions**
  - Retrieve transactions using `GET /api/v1/transactions`
  - Retrieve a single transactions using `GET /api/v1/transactions/{id}`
  - Create a transactions using `POST /api/v1/transactions`
