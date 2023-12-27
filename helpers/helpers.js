@@ -10,7 +10,7 @@ const isValidTransaction = async (req, res, next) => {
 
     const envelope = await db.query("SELECT * FROM envelopes WHERE id = $1", [envelopeId]);
     if(envelope.rows.length === 0) {
-        return res.status(400).send('Envelope not found!');
+        return res.status(404).send(`Envelope with id ${envelopeId} not found!`);
     }
 
     if(isNaN(parseFloat(amount)) && !isFinite(amount)) {
@@ -90,9 +90,6 @@ const findById = (data, id) => {
     const foundRecord = data.find((item) => {
         return item.id === parseInt(id);
     });
-    if(!foundRecord) {
-        throw new Error(`Envelope with id ${id} not found!`);
-    }
     return foundRecord;
 };
 

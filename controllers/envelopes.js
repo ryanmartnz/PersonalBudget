@@ -6,7 +6,7 @@ const getEnvelopes = async (req, res, next) => {
         const envelopes = await db.query("SELECT * FROM envelopes ORDER BY id ASC");
         return res.status(200).send(envelopes.rows);
     } catch(err) {
-        return res.status(400).send(err.message);
+        return res.status(500).send(err.message);
     }
 };
 
@@ -25,7 +25,7 @@ const addEnvelope = async (req, res, next) => {
         const newEnvelope = await db.query("INSERT INTO envelopes (id, title, budget) VALUES ($1, $2, $3) RETURNING *", [newId, req.title, req.budget]);
         return res.status(201).send(newEnvelope.rows[0]);
     } catch(err) {
-        return res.status(400).send(err.message);
+        return res.status(500).send(err.message);
     }
 };
 
@@ -56,6 +56,13 @@ const transfer = async (req, res, next) => {
         const fromEnvelope = findById(envelopes.rows, fromId);
         const toEnvelope = findById(envelopes.rows, toId);
 
+        if(!fromEnvelope) {
+            return res.status(404).send(`Envelope with id ${fromId} not found!`);
+        }
+        if(!toEnvelope) {
+            return res.status(404).send(`Envelope with id ${toId} not found!`);
+        }
+
         if(isNaN(parseFloat(amount)) && !isFinite(amount)) {
             return res.status(400).send('Transfer amount must be a number!');
         }
@@ -78,7 +85,7 @@ const transfer = async (req, res, next) => {
 
         return res.status(201).send(updatedFromEnvelope.rows);
     } catch (err) {
-        return res.status(404).send(err.message);
+        return res.status(500).send(err.message);
     }
 };
 
