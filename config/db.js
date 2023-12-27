@@ -2,10 +2,22 @@ const { Pool } = require('pg');
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
-// Database connection
-const pool = new Pool({
+let connection = {
   connectionString: DATABASE_URL,
-});
+};
+
+if(!DATABASE_URL) {
+  connection = {
+    user: 'ryan',
+    host: 'localhost',
+    database: 'personalbudget',
+    password: 'jackalope',
+    port: 5432,
+  };
+};
+
+// Database connection
+const pool = new Pool(connection);
 
 const query = async (text, params) => {
   const start = Date.now();
@@ -15,27 +27,33 @@ const query = async (text, params) => {
   return res;
 };
 
-module.exports = {
-  query
+const getClient = async () => {
+  const client = await pool.connect();
+  const query = client.query;
+  const release = client.release;
+  // set a timeout of 5 seconds, after which we will log this client's last query
+  const timeout = setTimeout(() => {
+    console.error('A client has been checked out for more than 5 seconds!');
+    console.error(`The last executed query on this client was: ${client.lastQuery}`);
+  }, 5000);
+  // monkey patch the query method to keep track of the last query executed
+  client.query = (...args) => {
+    client.lastQuery = args;
+    return query.apply(client, args);
+  };
+  client.release = () => {
+    // clear our timeout
+    clearTimeout(timeout);
+    // set the methods back to their old un-monkey-patched version
+    client.query = query;
+    client.release = release;
+    return release.apply(client);
+  };
+  return client;
 };
 
-// const envelopes = [
-//     {
-//       id: 1,
-//       title: "Rent",
-//       budget: 1000
-//     },
-//     {
-//       id: 2,
-//       title: "Groceries",
-//       budget: 300
-//     },
-//     {
-//       id: 3,
-//       title: "Entertainment",
-//       budget: 400
-//     },
-// ];
-  
-// module.exports = envelopes;
+module.exports = {
+  query,
+  getClient
+};
   

@@ -8,7 +8,9 @@ const isValidTransaction = async (req, res, next) => {
     }
     envelopeId = parseInt(envelopeId);
 
-    const envelope = await db.query("SELECT * FROM envelopes WHERE id = $1", [envelopeId]);
+    const client = await db.getClient();
+    const envelope = await client.query("SELECT * FROM envelopes WHERE id = $1", [envelopeId]);
+    client.release();
     if(envelope.rows.length === 0) {
         return res.status(404).send(`Envelope with id ${envelopeId} not found!`);
     }
@@ -48,7 +50,9 @@ const isValidEnvelope = (req, res, next) => {
 
 const findEnvelope = async (req, res, next, id) => {
     const envelopeId = Number(id);
-    const envelope = await db.query("SELECT * FROM envelopes WHERE id = $1", [envelopeId]);
+    const client = await db.getClient();
+    const envelope = await client.query("SELECT * FROM envelopes WHERE id = $1", [envelopeId]);
+    client.release();
     if(envelope.rows.length === 0) {
         return res.status(404).send(`Envelope with id ${envelopeId} not found!`);
     }
@@ -59,7 +63,9 @@ const findEnvelope = async (req, res, next, id) => {
 
 const findTransaction = async (req, res, next, id) => {
     const transactionId = Number(id);
-    const transaction = await db.query("SELECT * FROM transactions WHERE id = $1", [transactionId]);
+    const client = await db.getClient();
+    const transaction = await client.query("SELECT * FROM transactions WHERE id = $1", [transactionId]);
+    client.release();
     if(transaction.rows.length === 0) {
         return res.status(404).send(`Transaction with id ${transactionId} not found!`);
     }
@@ -69,7 +75,9 @@ const findTransaction = async (req, res, next, id) => {
 };
 
 const updateEnvelopeBudget = async (envelope, newEnvelopeBudget) => {
-    await db.query("UPDATE envelopes SET budget = $1 WHERE id = $2", [newEnvelopeBudget, envelope.id]);
+    const client = await db.getClient();
+    await client.query("UPDATE envelopes SET budget = $1 WHERE id = $2", [newEnvelopeBudget, envelope.id]);
+    client.release();
 };
 
 const createId = data => {

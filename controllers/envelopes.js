@@ -3,7 +3,9 @@ const { createId, findById } = require('../helpers/helpers');
 
 const getEnvelopes = async (req, res, next) => {
     try {
-        const envelopes = await db.query("SELECT * FROM envelopes ORDER BY id ASC");
+        const client = await db.getClient();
+        const envelopes = await client.query("SELECT * FROM envelopes ORDER BY id ASC");
+        client.release();
         return res.status(200).send(envelopes.rows);
     } catch(err) {
         return res.status(500).send(err.message);
@@ -20,9 +22,11 @@ const getEnvelopeById = async (req, res, next) => {
 
 const addEnvelope = async (req, res, next) => {
     try {
-        const results = await db.query("SELECT * FROM envelopes ORDER BY id");
+        const client = await db.getClient();
+        const results = await client.query("SELECT * FROM envelopes ORDER BY id");
         const newId = createId(results.rows);
-        const newEnvelope = await db.query("INSERT INTO envelopes (id, title, budget) VALUES ($1, $2, $3) RETURNING *", [newId, req.title, req.budget]);
+        const newEnvelope = await client.query("INSERT INTO envelopes (id, title, budget) VALUES ($1, $2, $3) RETURNING *", [newId, req.title, req.budget]);
+        client.release();
         return res.status(201).send(newEnvelope.rows[0]);
     } catch(err) {
         return res.status(500).send(err.message);
@@ -31,7 +35,9 @@ const addEnvelope = async (req, res, next) => {
 
 const updateEnvelope = async (req, res, next) => {
     try {
-        const updated = await db.query("UPDATE envelopes SET title = $1, budget = $2 WHERE id = $3 RETURNING *", [req.title, req.budget, req.params.id]);
+        const client = await db.getClient();
+        const updated = await client.query("UPDATE envelopes SET title = $1, budget = $2 WHERE id = $3 RETURNING *", [req.title, req.budget, req.params.id]);
+        client.release();
         return res.status(201).send(updated.rows[0]);
     } catch(err) {
         return res.status(404).send(err.message);
@@ -40,7 +46,9 @@ const updateEnvelope = async (req, res, next) => {
 
 const deleteEnvelope = async (req, res, next) => {
     try {
-        await db.query("DELETE FROM envelopes WHERE id = $1", [req.params.id]);
+        const client = await db.getClient();
+        await client.query("DELETE FROM envelopes WHERE id = $1", [req.params.id]);
+        client.release();
         return res.status(204).send(`Successfully deleted envelope with id: ${req.params.id}`);
     } catch(err) {
         return res.status(500).send(err.message);
@@ -51,7 +59,8 @@ const transfer = async (req, res, next) => {
     try {
         const { fromId, toId } = req.params;
         const { amount } = req.body;
-        const envelopes = await db.query("SELECT * FROM envelopes");
+        const client = await db.getClient();
+        const envelopes = await client.query("SELECT * FROM envelopes");
 
         const fromEnvelope = findById(envelopes.rows, fromId);
         const toEnvelope = findById(envelopes.rows, toId);
@@ -80,9 +89,10 @@ const transfer = async (req, res, next) => {
 
         console.log(toEnvelope.budget);
 
-        const updatedFromEnvelope = await db.query("UPDATE envelopes SET budget = $1 WHERE id = $2 RETURNING *", [fromEnvelope.budget, fromId]);
-        await db.query("UPDATE envelopes SET budget = $1 WHERE id = $2", [toEnvelope.budget, toId]);
-
+        const updatedFromEnvelope = await client.query("UPDATE envelopes SET budget = $1 WHERE id = $2 RETURNING *", [fromEnvelope.budget, fromId]);
+        await client.query("UPDATE envelopes SET budget = $1 WHERE id = $2", [toEnvelope.budget, toId]);
+        client.release();
+        
         return res.status(201).send(updatedFromEnvelope.rows);
     } catch (err) {
         return res.status(500).send(err.message);
