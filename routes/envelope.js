@@ -5,7 +5,6 @@ module.exports = router;
 
 const {
     getEnvelopes,
-    isValidEnvelope,
     addEnvelope,
     getEnvelopeById,
     deleteEnvelope,
@@ -13,15 +12,20 @@ const {
     transfer,
 } = require("../controllers/envelopes");
 
+const {
+    isValidEnvelope,
+    findEnvelope
+} = require("../helpers/helpers");
+
 router.get('/', getEnvelopes);
 
-router.get('/:id', getEnvelopeById);
+router.get('/:id', findEnvelope, getEnvelopeById);
 
-router.put('/:id', isValidEnvelope, updateEnvelope);
+router.put('/:id', isValidEnvelope, findEnvelope, updateEnvelope);
 
 router.post('/', isValidEnvelope, addEnvelope);
 
-router.delete('/:id', deleteEnvelope);
+router.delete('/:id', findEnvelope, deleteEnvelope);
 
 router.post('/:fromId/transfer/:toId', transfer);
 
