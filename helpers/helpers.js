@@ -16,6 +16,7 @@ const isValidTransaction = async (req, res, next) => {
     if(isNaN(parseFloat(amount)) && !isFinite(amount)) {
         return res.status(400).send('Transaction amount must be a number!');
     }
+    amount = parseFloat(amount);
 
     date = !date ? new Date() : new Date(date);
     if(!(date instanceof Date && isFinite(date))) {
@@ -24,9 +25,10 @@ const isValidTransaction = async (req, res, next) => {
     const formattedDate = new Date(date.getTime()).toISOString().split("T")[0];
     
     req.date = formattedDate;
-    req.amount = parseFloat(amount);
+    req.amount = amount;
     req.recipient = recipient;
-    req.envelopeId = envelopeId;
+    req.envelope = envelope.rows[0];
+    req.envelope.budget = parseFloat(req.envelope.budget);
     next();
 };
 
@@ -44,24 +46,30 @@ const isValidEnvelope = (req, res, next) => {
     next();
 };
 
-const findEnvelope = async (req, res, next) => {
-    const { id } = req.params;
-    const envelope = await db.query("SELECT * FROM envelopes WHERE id = $1", [id]);
+const findEnvelope = async (req, res, next, id) => {
+    const envelopeId = Number(id);
+    const envelope = await db.query("SELECT * FROM envelopes WHERE id = $1", [envelopeId]);
     if(envelope.rows.length === 0) {
-        return res.status(404).send("Envelope not found!");
+        return res.status(404).send(`Envelope with id ${envelopeId} not found!`);
     }
     req.envelope = envelope.rows[0];
+    req.envelope.budget = parseFloat(req.envelope.budget);
     next();
 };
 
-const findTransaction = async (req, res, next) => {
-    const { id } = req.params;
-    const transaction = await db.query("SELECT * FROM transactions WHERE id = $1", [id]);
+const findTransaction = async (req, res, next, id) => {
+    const transactionId = Number(id);
+    const transaction = await db.query("SELECT * FROM transactions WHERE id = $1", [transactionId]);
     if(transaction.rows.length === 0) {
-        return res.status(404).send(`Transaction with id ${id} not found!`);
+        return res.status(404).send(`Transaction with id ${transactionId} not found!`);
     }
     req.transaction = transaction.rows[0];
+    req.transaction.amount = parseFloat(req.transaction.amount);
     next();
+};
+
+const updateEnvelopeBudget = async (envelope, newEnvelopeBudget) => {
+    await db.query("UPDATE envelopes SET budget = $1 WHERE id = $2", [newEnvelopeBudget, envelope.id]);
 };
 
 const createId = data => {
@@ -93,6 +101,7 @@ module.exports = {
     isValidTransaction,
     findEnvelope,
     findTransaction,
+    updateEnvelopeBudget,
     createId,
     findById
 };

@@ -16,12 +16,14 @@ const {
     findTransaction
 } = require("../helpers/helpers");
 
+router.param('id', findTransaction);
+
 router.get('/', getTransactions);
 
-router.get('/:id', findTransaction, getTransactionById);
+router.get('/:id', getTransactionById);
 
-router.put('/:id', isValidTransaction, findTransaction, updateTransaction);
+router.put('/:id', isValidTransaction, updateTransaction);
 
 router.post('/', isValidTransaction, newTransaction);
 
-router.delete('/:id', findTransaction, deleteTransaction);
+router.delete('/:id', deleteTransaction);

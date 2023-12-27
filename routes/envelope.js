@@ -17,15 +17,17 @@ const {
     findEnvelope
 } = require("../helpers/helpers");
 
+router.param('id', findEnvelope);
+
 router.get('/', getEnvelopes);
 
-router.get('/:id', findEnvelope, getEnvelopeById);
+router.get('/:id', getEnvelopeById);
 
-router.put('/:id', isValidEnvelope, findEnvelope, updateEnvelope);
+router.put('/:id', isValidEnvelope, updateEnvelope);
 
 router.post('/', isValidEnvelope, addEnvelope);
 
-router.delete('/:id', findEnvelope, deleteEnvelope);
+router.delete('/:id', deleteEnvelope);
 
 router.post('/:fromId/transfer/:toId', transfer);
 

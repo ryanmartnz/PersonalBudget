@@ -1,5 +1,5 @@
 const db = require('../config/db');
-const { createId, findById } = require('../helpers/helpers');
+const { createId } = require('../helpers/helpers');
 
 const getEnvelopes = async (req, res, next) => {
     try {
