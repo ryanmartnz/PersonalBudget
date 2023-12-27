@@ -4,10 +4,12 @@ const logger = require("morgan");
 
 const envelopesRouter = require('./routes/envelope');
 const transactionRouter = require('./routes/transaction');
+const docsRouter = require("./routes/docs");
 
 app.use(logger("dev"));
 app.use(express.json());
 
+app.use("/api-docs", docsRouter);
 app.use('/api/v1/envelopes', envelopesRouter);
 app.use('/api/v1/transactions', transactionRouter);
 
