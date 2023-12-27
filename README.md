@@ -14,7 +14,7 @@ A global version of the API can be accessed at `https://personal-budget-xnbn.onr
 ## Testing with Swagger
 Swagger documentation and testing available at:
  - Locally: `http://localhost:4000/api-docs` 
- - Globally: `https://personal-budget-xnbn.onrender.com`
+ - Globally: `https://personal-budget-xnbn.onrender.com/api-docs`
 
 To test with Swagger:
 
